@@ -25,6 +25,9 @@ import {
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '';
 
+// Default value to effectively mask all characters in a field
+const DEFAULT_CHARS_TO_MASK = 999;
+
 const ENTITY_OPTIONS = [
   'PERSON', 'LOCATION', 'ORGANIZATION', 'EMAIL_ADDRESS', 'PHONE_NUMBER',
   'CREDIT_CARD', 'IBAN_CODE', 'IP_ADDRESS', 'DATE_TIME', 'NRP',
@@ -69,7 +72,7 @@ export default function App() {
   // Anonymize state
   const [operator, setOperator] = useState<string>('redact');
   const [maskingChar, setMaskingChar] = useState('*');
-  const [charsToMask, setCharsToMask] = useState<number | string>(999);
+  const [charsToMask, setCharsToMask] = useState<number | string>(DEFAULT_CHARS_TO_MASK);
   const [fromEnd, setFromEnd] = useState(false);
   const [newValue, setNewValue] = useState('<ANONYMIZED>');
   const [anonymizeResult, setAnonymizeResult] = useState<AnonymizeResult | null>(null);
