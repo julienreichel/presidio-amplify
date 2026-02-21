@@ -1,0 +1,22 @@
+{
+  "name": "presidio-amplify",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "sandbox": "ampx sandbox",
+    "deploy": "ampx pipeline-deploy",
+    "generate-outputs": "ampx generate outputs --branch main",
+    "test": "pytest tests/ -v"
+  },
+  "dependencies": {
+    "@aws-amplify/backend": "^1.9.0",
+    "@aws-amplify/backend-cli": "^1.4.0",
+    "aws-cdk-lib": "^2.185.0",
+    "constructs": "^10.4.2",
+    "typescript": "^5.7.3"
+  },
+  "devDependencies": {
+    "@aws-cdk/aws-lambda-python-alpha": "^2.185.0-alpha.0",
+    "tsx": "^4.19.2"
+  }
+}
