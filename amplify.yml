@@ -1,0 +1,25 @@
+version: 1
+backend:
+  phases:
+    build:
+      commands:
+        - npm ci
+        - npm run deploy
+frontend:
+  phases:
+    preBuild:
+      commands:
+        - cd app && npm ci
+    build:
+      commands:
+        - cd app && npm run build
+  artifacts:
+    baseDirectory: app/dist
+    files:
+      - '**/*'
+  cache:
+    paths:
+      - app/node_modules/**/*
+  environment:
+    variables:
+      VITE_API_BASE_URL: ''
