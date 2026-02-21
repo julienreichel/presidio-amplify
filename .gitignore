@@ -1,0 +1,24 @@
+# Node / Amplify
+node_modules/
+.amplify/
+cdk.out/
+*.js.map
+dist/
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+*.egg-info/
+
+# AWS CDK output
+cdk.context.json
+
+# Amplify output artefacts
+amplify_outputs.json
+
+# OS
+.DS_Store
+Thumbs.db
