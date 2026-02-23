@@ -8,7 +8,7 @@ backend:
       commands:
         - npm ci --include=optional
         - npm rebuild @parcel/watcher --build-from-source
-        - npm run deploy
+        - npx ampx pipeline-deploy --branch $AWS_BRANCH --app-id $AWS_APP_ID
 frontend:
   phases:
     preBuild:
