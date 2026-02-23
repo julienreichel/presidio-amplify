@@ -22,8 +22,22 @@ import {
   Divider,
   Box,
 } from '@mantine/core';
+import outputs from '../../amplify_outputs.json';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '';
+// Type for Amplify outputs with custom API configuration
+interface AmplifyOutputs {
+  custom?: {
+    API?: {
+      PresidioApi?: {
+        endpoint?: string;
+        region?: string;
+      };
+    };
+  };
+}
+
+// Get API base URL from Amplify outputs (deployed) or environment variable (local dev)
+const API_BASE_URL = (outputs as AmplifyOutputs).custom?.API?.PresidioApi?.endpoint ?? import.meta.env.VITE_API_BASE_URL ?? '';
 
 // Default value to effectively mask all characters in a field
 const DEFAULT_CHARS_TO_MASK = 999;

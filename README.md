@@ -76,10 +76,15 @@ npm install
 npm run dev
 ```
 
-The Vite dev server will start at `http://localhost:5173` (or the next available port).  
-The UI automatically connects to your deployed Amplify sandbox backend using the generated `amplify_outputs.json` file.
+The Vite dev server will start at `http://localhost:5173` (or the next available port).
 
-**Note:** Make sure you've deployed the backend with `npx ampx sandbox` before running the UI, as it needs the API endpoint configuration.
+**API Configuration:**
+- The UI automatically reads the API endpoint from `amplify_outputs.json` (generated after deploying the backend)
+- Make sure you've deployed the backend with `npx ampx sandbox` before running the UI
+- For local backend development, you can override the API URL by creating `app/.env.local`:
+  ```bash
+  VITE_API_BASE_URL=http://localhost:3000
+  ```
 
 ## Endpoint reference
 

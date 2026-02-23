@@ -137,7 +137,11 @@ def handler(event, context):  # noqa: ARG001
 
     return {
         "statusCode": 200,
-        "headers": {"Content-Type": "application/json"},
+        "headers": {
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Headers": "Content-Type",
+        },
         "body": json.dumps(
             {
                 "requestId": str(uuid.uuid4()),
@@ -153,6 +157,10 @@ def handler(event, context):  # noqa: ARG001
 def _error(status: int, message: str) -> dict:
     return {
         "statusCode": status,
-        "headers": {"Content-Type": "application/json"},
+        "headers": {
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Headers": "Content-Type",
+        },
         "body": json.dumps({"error": message}),
     }
