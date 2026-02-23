@@ -1,15 +1,6 @@
 version: 1
-backend:
-  phases:
-    preBuild:
-      commands:
-        - nohup /usr/local/bin/dockerd --host=unix:///var/run/docker.sock --host=tcp://127.0.0.1:2375 --storage-driver=overlay2 &
-        - timeout 15 sh -c "until docker info; do echo .; sleep 1; done"
-    build:
-      commands:
-        - npm ci --include=optional
-        - npm rebuild @parcel/watcher --build-from-source
-        - npx ampx pipeline-deploy --branch $AWS_BRANCH --app-id $AWS_APP_ID
+# Backend is deployed via GitHub Actions (see .github/workflows/deploy.yml)
+# Amplify Hosting only builds the frontend
 frontend:
   phases:
     preBuild:

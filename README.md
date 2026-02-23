@@ -42,11 +42,29 @@ npm install
 pip install pytest
 pytest
 
-# Deploy to your AWS sandbox
+# Deploy to your AWS sandbox (local development)
 npx ampx sandbox
 ```
 
-After deployment the CDK output will print the `PresidioApiUrl`.  
+After deployment the CDK output will print the `PresidioApiUrl`.
+
+## Deployment
+
+### Local Sandbox (Development)
+The `npx ampx sandbox` command deploys to a temporary CloudFormation stack in your AWS account. This is perfect for development and testing.
+
+### Production Deployment (GitHub Actions)
+For production deployment, this project uses **GitHub Actions** instead of Amplify CI/CD because the Python Lambda layer requires Docker for bundling, which is not available in the default Amplify build environment.
+
+**Architecture:**
+- ✅ GitHub Actions deploys the backend (with Docker support for Python layer)
+- ✅ Amplify Hosting deploys the frontend only
+- ✅ Secure OIDC authentication (no long-lived credentials)
+
+**Setup Instructions:** See [.github/DEPLOYMENT.md](.github/DEPLOYMENT.md) for complete setup guide.
+
+## Testing the API
+
 Test with:
 
 ```bash
