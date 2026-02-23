@@ -4,7 +4,7 @@ backend:
     build:
       commands:
         - npm ci --include=optional
-        - npm rebuild @parcel/watcher || echo "Warning: Failed to rebuild @parcel/watcher"
+        - 'npm rebuild @parcel/watcher || echo "Warning - Failed to rebuild @parcel/watcher"'
         - npm run deploy
 frontend:
   phases:
