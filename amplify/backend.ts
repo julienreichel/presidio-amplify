@@ -155,7 +155,6 @@ pii
 new cdk.CfnOutput(apiStack, "PresidioApiUrl", {
   value: api.url,
   description: "Base URL of the Presidio PII REST API",
-  exportName: "PresidioApiUrl",
 });
 
 // ─── Add API URL to Amplify outputs for frontend ─────────────────────────────
