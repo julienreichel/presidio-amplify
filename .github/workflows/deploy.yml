@@ -46,7 +46,7 @@ jobs:
       - name: Build frontend
         run: |
           cd app
-          npm ci
+          npm ci --include=optional
           npm run build
           echo "✅ Frontend built successfully"
           
