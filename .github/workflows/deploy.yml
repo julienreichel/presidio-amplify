@@ -43,13 +43,6 @@ jobs:
           export CI=1
           npx ampx pipeline-deploy --branch main --app-id "$AMPLIFY_APP_ID"
 
-      - name: Setup Node.js for frontend
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: 'app/package-lock.json'
-
       - name: Build frontend
         run: |
           cd app
