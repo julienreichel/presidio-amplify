@@ -46,7 +46,8 @@ pytest
 npx ampx sandbox
 ```
 
-After deployment the CDK output will print the `PresidioApiUrl`.
+After deployment the CDK output will print the API URL, and `amplify_outputs.json`
+will include the `custom.API.PresidioApi.endpoint` value for the frontend.
 
 ## Deployment
 
