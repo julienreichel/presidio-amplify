@@ -31,7 +31,7 @@ const presidioLayer = new PythonLayerVersion(apiStack, "PresidioLayer", {
   entry: path.join(__dirname, "layer/presidio"),
   compatibleRuntimes: [lambda.Runtime.PYTHON_3_11],
   description:
-    "presidio-analyzer, presidio-anonymizer, spaCy 3.7 + en model",
+    "presidio-analyzer, presidio-anonymizer, spaCy 3.7 + en/fr models",
   bundling: {
     environment: {
       PIP_NO_CACHE_DIR: "1",

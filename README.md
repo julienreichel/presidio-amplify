@@ -14,12 +14,14 @@ Both Lambdas share a Lambda Layer containing:
   • presidio-anonymizer ≥ 2.2.356
   • spaCy 3.7.x
   • en_core_web_sm-3.7.1  (small English NLP model, ~12 MB)
+  • fr_core_news_sm-3.7.0  (small French NLP model, ~16 MB)
 ```
 
-> **NLP limitations (demo only):** The small spaCy model (`en_core_web_sm`) has lower
-> recall than the medium/large variants. For production, swap to `en_core_web_lg`
-> and re-benchmark recall. Only English is currently supported to stay within the
-> 250 MB Lambda layer limit.
+> **NLP limitations (demo only):** The small spaCy models (`*_sm`) have lower
+> recall than the medium/large variants. For production, swap to
+> `en_core_web_lg` / `fr_dep_news_trf` and re-benchmark recall.
+> Aggressive layer size optimizations (stripping binaries, removing tests/docs)
+> keep the deployment under the 250 MB Lambda layer limit.
 
 ## Prerequisites
 
@@ -97,7 +99,7 @@ The UI automatically connects to your deployed Amplify sandbox backend using the
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
 | `text` | string | — | Text to analyse (**required**) |
-| `language` | `"en"` | `"en"` | Language of the text |
+| `language` | `"en"` \| `"fr"` | `"en"` | Language of the text |
 | `entities` | string[] | all | Restrict to specific entity types |
 | `scoreThreshold` | number 0–1 | `0.5` | Minimum confidence score |
 

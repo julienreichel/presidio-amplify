@@ -10,5 +10,7 @@ spacy>=3.7.4,<3.8
 
 # spaCy language models bundled as pip packages
 # en_core_web_sm  – small English model (~12 MB unzipped)
-# Note: French model removed to stay under 250 MB Lambda layer limit
 en-core-web-sm @ https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.7.1/en_core_web_sm-3.7.1-py3-none-any.whl
+
+# fr_core_news_sm – small French model (~16 MB unzipped)
+fr-core-news-sm @ https://github.com/explosion/spacy-models/releases/download/fr_core_news_sm-3.7.0/fr_core_news_sm-3.7.0-py3-none-any.whl

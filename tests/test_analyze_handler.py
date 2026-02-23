@@ -205,6 +205,13 @@ class TestAnalyzeSuccess:
             call_kwargs = mock_get.return_value.analyze.call_args.kwargs
             assert call_kwargs["score_threshold"] == 0.5
 
+    def test_french_language_accepted(self):
+        with patch.object(analyze_module, "_get_analyzer") as mock_get:
+            mock_get.return_value.analyze.return_value = []
+            resp = _call({"text": "Bonjour", "language": "fr"})
+
+        assert resp["statusCode"] == 200
+
     def test_content_type_is_json(self):
         with patch.object(analyze_module, "_get_analyzer") as mock_get:
             mock_get.return_value.analyze.return_value = []

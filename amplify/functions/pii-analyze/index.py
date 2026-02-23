@@ -6,7 +6,7 @@ Detects PII entities in the supplied text using Microsoft Presidio.
 Request JSON:
     {
         "text":           <string, required>,
-        "language":       "en"  (optional, default "en"),
+        "language":       "en" | "fr"  (optional, default "en"),
         "entities":       ["EMAIL_ADDRESS", ...]  (optional, default all),
         "scoreThreshold": <number 0-1>  (optional, default 0.5)
     }
@@ -39,7 +39,7 @@ _analyzer = None
 
 
 def _get_analyzer():
-    """Return (and lazily initialise) the AnalyzerEngine with EN spaCy model."""
+    """Return (and lazily initialise) the AnalyzerEngine with EN + FR spaCy models."""
     global _analyzer
     if _analyzer is None:
         # Import here so the module can be imported without Presidio installed
@@ -51,13 +51,14 @@ def _get_analyzer():
             "nlp_engine_name": "spacy",
             "models": [
                 {"lang_code": "en", "model_name": "en_core_web_sm"},
+                {"lang_code": "fr", "model_name": "fr_core_news_sm"},
             ],
         }
         provider = NlpEngineProvider(nlp_configuration=configuration)
         nlp_engine = provider.create_engine()
         _analyzer = AnalyzerEngine(
             nlp_engine=nlp_engine,
-            supported_languages=["en"],
+            supported_languages=["en", "fr"],
         )
         logger.info("AnalyzerEngine initialised")
     return _analyzer
@@ -76,8 +77,8 @@ def handler(event, context):  # noqa: ARG001
         return _error(400, '"text" is required and must be a non-empty string')
 
     language = body.get("language", "en")
-    if language != "en":
-        return _error(400, '"language" must be "en"')
+    if language not in ("en", "fr"):
+        return _error(400, '"language" must be "en" or "fr"')
 
     entities = body.get("entities")
     if entities is not None:
