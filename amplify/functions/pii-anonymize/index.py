@@ -6,7 +6,7 @@ Anonymizes PII entities in the supplied text using Microsoft Presidio.
 Request JSON:
     {
         "text":           <string, required>,
-        "language":       "en" | "fr"  (optional, default "en"),
+        "language":       "en"  (optional, default "en"),
         "entities":       ["EMAIL_ADDRESS", ...]  (optional, default all),
         "scoreThreshold": <number 0-1>  (optional, default 0.5),
         "operators":      {                        (optional)
@@ -67,14 +67,13 @@ def _get_engines():
             "nlp_engine_name": "spacy",
             "models": [
                 {"lang_code": "en", "model_name": "en_core_web_sm"},
-                {"lang_code": "fr", "model_name": "fr_core_news_sm"},
             ],
         }
         provider = NlpEngineProvider(nlp_configuration=configuration)
         nlp_engine = provider.create_engine()
         _analyzer = AnalyzerEngine(
             nlp_engine=nlp_engine,
-            supported_languages=["en", "fr"],
+            supported_languages=["en"],
         )
         logger.info("AnalyzerEngine initialised")
 
@@ -100,8 +99,8 @@ def handler(event, context):  # noqa: ARG001
         return _error(400, '"text" is required and must be a non-empty string')
 
     language = body.get("language", "en")
-    if language not in ("en", "fr"):
-        return _error(400, '"language" must be "en" or "fr"')
+    if language != "en":
+        return _error(400, '"language" must be "en"')
 
     entities = body.get("entities")
     if entities is not None:

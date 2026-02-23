@@ -14,13 +14,12 @@ Both Lambdas share a Lambda Layer containing:
   • presidio-anonymizer ≥ 2.2.356
   • spaCy 3.7.x
   • en_core_web_sm-3.7.1  (small English NLP model, ~12 MB)
-  • fr_core_news_sm-3.7.0  (small French NLP model, ~16 MB)
 ```
 
-> **NLP limitations (demo only):** The small spaCy models (`*_sm`) have lower
-> recall than the medium/large variants. For production, swap to
-> `en_core_web_lg` / `fr_dep_news_trf` and re-benchmark recall.
-> The layer size is ~220–240 MB (within the 250 MB Lambda layer limit).
+> **NLP limitations (demo only):** The small spaCy model (`en_core_web_sm`) has lower
+> recall than the medium/large variants. For production, swap to `en_core_web_lg`
+> and re-benchmark recall. Only English is currently supported to stay within the
+> 250 MB Lambda layer limit.
 
 ## Prerequisites
 
@@ -62,6 +61,24 @@ curl -s -X POST "$BASE/v1/pii/anonymize" \
   -d '{"text":"My email is john@example.com","operators":{"EMAIL_ADDRESS":{"type":"redact"}}}' | jq .
 ```
 
+## Running the UI in development mode
+
+The project includes a React + TypeScript UI built with Vite that provides a web interface for testing the PII detection endpoints.
+
+```bash
+# Install UI dependencies
+cd app
+npm install
+
+# Start the development server
+npm run dev
+```
+
+The Vite dev server will start at `http://localhost:5173` (or the next available port).  
+The UI automatically connects to your deployed Amplify sandbox backend using the generated `amplify_outputs.json` file.
+
+**Note:** Make sure you've deployed the backend with `npx ampx sandbox` before running the UI, as it needs the API endpoint configuration.
+
 ## Endpoint reference
 
 ### POST /v1/pii/analyze
@@ -80,7 +97,7 @@ curl -s -X POST "$BASE/v1/pii/anonymize" \
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
 | `text` | string | — | Text to analyse (**required**) |
-| `language` | `"en"` \| `"fr"` | `"en"` | Language of the text |
+| `language` | `"en"` | `"en"` | Language of the text |
 | `entities` | string[] | all | Restrict to specific entity types |
 | `scoreThreshold` | number 0–1 | `0.5` | Minimum confidence score |
 

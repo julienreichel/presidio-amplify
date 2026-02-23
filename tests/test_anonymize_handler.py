@@ -240,18 +240,6 @@ class TestAnonymizeSuccess:
             call_kwargs = mock_analyzer.analyze.call_args.kwargs
             assert call_kwargs["language"] == "en"
 
-    def test_french_language_accepted(self):
-        with patch.object(anonymize_module, "_get_engines") as mock_engines:
-            mock_analyzer = MagicMock()
-            mock_analyzer.analyze.return_value = []
-            mock_anonymizer = MagicMock()
-            mock_anonymizer.anonymize.return_value = _make_anon_result()
-            mock_engines.return_value = mock_analyzer, mock_anonymizer
-
-            resp = _call({"text": "Bonjour", "language": "fr"})
-
-        assert resp["statusCode"] == 200
-
     def test_operators_passed_to_anonymizer(self):
         with patch.object(anonymize_module, "_get_engines") as mock_engines:
             mock_analyzer = MagicMock()

@@ -25,14 +25,52 @@ const apiStack = backend.createStack("PresidioApiStack");
 // to run `pip install` in a Lambda-compatible container). Make sure Docker is
 // available when running `ampx sandbox` or `cdk deploy`.
 //
-// Layer size: ~220–240 MB unzipped (spaCy + models dominate).
-// Stays within the 250 MB Lambda layer limit.
+// Layer size optimizations: excludes test files, docs, and unnecessary metadata
 
 const presidioLayer = new PythonLayerVersion(apiStack, "PresidioLayer", {
   entry: path.join(__dirname, "layer/presidio"),
   compatibleRuntimes: [lambda.Runtime.PYTHON_3_11],
   description:
-    "presidio-analyzer, presidio-anonymizer, spaCy 3.7 + en/fr models",
+    "presidio-analyzer, presidio-anonymizer, spaCy 3.7 + en model",
+  bundling: {
+    environment: {
+      PIP_NO_CACHE_DIR: "1",
+      PIP_DISABLE_PIP_VERSION_CHECK: "1",
+      PIP_NO_COMPILE: "1",
+    },
+    commandHooks: {
+      afterBundling(inputDir: string, outputDir: string): string[] {
+        return [
+          // Remove test files and directories
+          `find ${outputDir} -type d -name "tests" -exec rm -rf {} + 2>/dev/null || true`,
+          `find ${outputDir} -type d -name "test" -exec rm -rf {} + 2>/dev/null || true`,
+          `find ${outputDir} -type d -name "testing" -exec rm -rf {} + 2>/dev/null || true`,
+          // Remove __pycache__ and .pyc files
+          `find ${outputDir} -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true`,
+          `find ${outputDir} -type f -name "*.pyc" -delete 2>/dev/null || true`,
+          `find ${outputDir} -type f -name "*.pyo" -delete 2>/dev/null || true`,
+          // Remove .so debug symbols
+          `find ${outputDir} -name "*.so" -exec strip {} \\; 2>/dev/null || true`,
+          // Remove unnecessary metadata
+          `find ${outputDir} -type d -name "*.dist-info" -exec sh -c 'cd "$1" && ls | grep -v -E "^(METADATA|top_level.txt)$" | xargs rm -rf' _ {} \\; 2>/dev/null || true`,
+          `find ${outputDir} -type d -name "*.egg-info" -exec rm -rf {} + 2>/dev/null || true`,
+          // Remove docs and markdown files
+          `find ${outputDir} -type f -name "*.md" -delete 2>/dev/null || true`,
+          `find ${outputDir} -type f -name "*.rst" -delete 2>/dev/null || true`,
+          `find ${outputDir} -type f -name "*.txt" ! -name "top_level.txt" -delete 2>/dev/null || true`,
+          `find ${outputDir} -type d -name "docs" -exec rm -rf {} + 2>/dev/null || true`,
+          // Remove examples and benchmarks
+          `find ${outputDir} -type d -name "examples" -exec rm -rf {} + 2>/dev/null || true`,
+          `find ${outputDir} -type d -name "benchmarks" -exec rm -rf {} + 2>/dev/null || true`,
+          // Show final size
+          `echo "=== Final layer size ===" && du -sh ${outputDir}`,
+        ];
+      },
+      beforeBundling(): string[] {
+        return [];
+      },
+    },
+  },
 });
 
 // ─── Common Lambda settings ───────────────────────────────────────────────────
