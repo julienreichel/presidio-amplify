@@ -57,15 +57,15 @@ Go to your repository → Settings → Secrets and variables → Actions
 |---------------|-------|
 | `AWS_REGION` | `eu-central-1` (or your preferred region) |
 
-### 3. Disable Automatic Builds in Amplify Hosting
+### 3. Disconnect Repository from Amplify App
 
-Since GitHub Actions will handle all builds:
+Since GitHub Actions will deploy everything via API:
 
-1. Go to Amplify Console → Your App → Hosting → Build settings
-2. Find your `main` branch
-3. Click **Actions** → **Disable auto build**
+1. Go to Amplify Console → Your App → App settings → General
+2. Under "Repository details", click **Disconnect repository**
+3. Confirm the disconnection
 
-This prevents Amplify from trying to build on every push (GitHub Actions will deploy the pre-built frontend instead).
+This allows manual deployments via the Amplify API while keeping all Amplify Hosting features (HTTPS, custom domains, CDN).
 
 ## How It Works
 
@@ -82,14 +82,14 @@ This prevents Amplify from trying to build on every push (GitHub Actions will de
    - Runs `npm run build` (reads API URL from `amplify_outputs.json`)
 5. **Deploy frontend to Amplify Hosting**:
    - Zips the built frontend
-   - Uses AWS Amplify API to deploy directly
-   - No build phase in Amplify (already built in GitHub Actions)
+   - Uses Amplify `create-deployment` API to upload
+   - Amplify serves the static files with HTTPS, CDN, etc.
 
 ✅ **No coordination needed** - everything happens in one workflow
 ✅ **`amplify_outputs.json` never committed** - stays in `.gitignore`
 ✅ **Fast builds** - Docker and all tools available
 ✅ **Amplify benefits** - HTTPS, custom domains, CDN, monitoring
-✅ **Simple** - one configuration file, one app
+✅ **Simple** - one workflow, Amplify app disconnected from repository
 
 ## Testing the Setup
 
