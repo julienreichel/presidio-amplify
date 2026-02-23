@@ -5,10 +5,9 @@ This guide explains how to set up deployment using GitHub Actions.
 ## Why GitHub Actions?
 
 - ✅ Docker available by default (required for Python Lambda layer bundling)
-- ✅ Better control over build environment
-- ✅ Works perfectly with your existing setup (tested locally)
-- ✅ Amplify Hosting still used for frontend
-- ✅ Simple setup with AWS access keys
+- ✅ Build backend and frontend in one place
+- ✅ Deploy to your existing Amplify app (HTTPS, custom domains, etc.)
+- ✅ Simple, no extra infrastructure needed
 
 ## Setup Steps
 
@@ -33,6 +32,13 @@ aws iam create-access-key --user-name github-actions-presidio-deploy
 
 > **Security**: For production, create a custom policy with least-privilege permissions for CloudFormation, Lambda, API Gateway, S3, IAM, etc. instead of PowerUserAccess.
 
+> **Important**: The `AMPLIFY_APP_ID` is still used by `ampx pipeline-deploy` to deploy the backend. If you haven't created an Amplify app yet:
+> ```bash
+> # Create a minimal Amplify app (just for backend deployment)
+> aws amplify create-app --name presidio-amplify --region $(aws configure get region)
+> # Note the appId from the output
+> ```
+
 ### 2. Configure GitHub Secrets
 
 Go to your repository → Settings → Secrets and variables → Actions
@@ -51,85 +57,77 @@ Go to your repository → Settings → Secrets and variables → Actions
 |---------------|-------|
 | `AWS_REGION` | `eu-central-1` (or your preferred region) |
 
-### 3. Update Amplify Build Settings
+### 3. Disable Automatic Builds in Amplify Hosting
 
-In Amplify Console:
+Since GitHub Actions will handle all builds:
 
-1. Go to your app → Hosting → Build settings
-2. Update `amplify.yml` to only build frontend:
+1. Go to Amplify Console → Your App → Hosting → Build settings
+2. Find your `main` branch
+3. Click **Actions** → **Disable auto build**
 
-```yaml
-version: 1
-frontend:
-  phases:
-    preBuild:
-      commands:
-        - cd app && npm ci
-    build:
-      commands:
-        - cd app && npm run build
-  artifacts:
-    baseDirectory: app/dist
-    files:
-      - '**/*'
-  cache:
-    paths:
-      - app/node_modules/**/*
-```
-
-3. Make sure "Auto build" is ENABLED for the main branch (so frontend updates trigger builds)
-
-### 4. Disable Backend Builds in Amplify
-
-Since GitHub Actions handles backend deployment now:
-
-1. In Amplify Console, go to Build settings
-2. The backend phase should be removed from `amplify.yml` (see step 5)
+This prevents Amplify from trying to build on every push (GitHub Actions will deploy the pre-built frontend instead).
 
 ## How It Works
 
-### Backend Deployment (GitHub Actions)
-- Push to `main` branch → GitHub Actions workflow triggers
-- Workflow uses Docker (available by default) to build Python dependencies
-- Deploys backend via `ampx pipeline-deploy`
-- Generates `amplify_outputs.json`
+**Single GitHub Actions workflow builds and deploys everything:**
 
-### Frontend Deployment (Amplify Hosting)
-- GitHub Actions completes → Amplify detects the push
-- Amplify builds frontend using latest `amplify_outputs.json`
-- Deploys frontend to Amplify Hosting
+1. **Push to `main`** → workflow triggers
+2. **Install dependencies** (Node.js, npm packages)
+3. **Deploy backend**: 
+   - Uses Docker to bundle Python Lambda layer
+   - Runs `ampx pipeline-deploy` to deploy CloudFormation stack
+   - Generates `amplify_outputs.json` with API endpoint
+4. **Build frontend**: 
+   - Installs app dependencies
+   - Runs `npm run build` (reads API URL from `amplify_outputs.json`)
+5. **Deploy frontend to Amplify Hosting**:
+   - Zips the built frontend
+   - Uses AWS Amplify API to deploy directly
+   - No build phase in Amplify (already built in GitHub Actions)
+
+✅ **No coordination needed** - everything happens in one workflow
+✅ **`amplify_outputs.json` never committed** - stays in `.gitignore`
+✅ **Fast builds** - Docker and all tools available
+✅ **Amplify benefits** - HTTPS, custom domains, CDN, monitoring
+✅ **Simple** - one configuration file, one app
 
 ## Testing the Setup
 
 1. Commit and push your changes:
    ```bash
-   git add .github/workflows/deploy.yml
+   git add .github/workflows/deploy.yml .github/DEPLOYMENT.md amplify.yml
    git commit -m "feat: add GitHub Actions deployment"
    git push origin main
    ```
 
 2. Watch the deployment:
-   - GitHub: Actions tab → Watch "Deploy Backend" workflow
-   - AWS: CloudFormation console → Watch stack updates
-   - Amplify: Build logs → Watch frontend build
+   - **GitHub**: Actions tab → Watch "Deploy Backend" workflow
+   - **AWS CloudFormation**: Watch stack updates
+   - **Amplify Console**: Check deployment status
+
+3. Access your app:
+   - Frontend: Your Amplify app URL (e.g., `https://main.xxx.amplifyapp.com`)
+   - Backend API: Check CloudFormation outputs for `PresidioApiUrl`
 
 ## Troubleshooting
 
 ### "Error: The security token included in the request is invalid"
 - Check that `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` secrets are correct
-- Verify the IAM user has the required permissions
+- Verify the IAM user has PowerUserAccess permissions
 
 ### "Error: Missing app-id" or workflow completes but doesn't deploy
 - Verify `AMPLIFY_APP_ID` secret is set correctly
 - Check GitHub Actions logs for the "skipping Amplify deploy" message
 
+### Frontend shows "Failed to fetch" or can't connect to API
+- Verify `amplify_outputs.json` was generated (check workflow logs)
+- Check the API URL in the browser console
+- Verify CORS is enabled on the API (it should be by default)
+
+### "Access Denied" when deploying to Amplify
+- Ensure the IAM user has permissions for `amplify:CreateDeployment` and `amplify:StartDeployment`
+- PowerUserAccess should include these by default
+
 ### Docker errors
 - Should not happen in GitHub Actions (Docker is pre-installed)
-
-## Rolling Back to Amplify CI/CD (if needed)
-
-If you want to go back:
-1. Re-enable backend builds in `amplify.yml`
-2. Disable/delete the GitHub Actions workflow
-3. Push to trigger an Amplify build
 

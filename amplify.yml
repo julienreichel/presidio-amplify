@@ -1,18 +1,8 @@
+# Backend and frontend are both deployed via GitHub Actions (.github/workflows/deploy.yml)
+# 
+# To use this setup:
+# 1. Disable automatic builds for the main branch in Amplify Console
+# 2. GitHub Actions will build and deploy both backend and frontend
+#
+# This file is kept for reference but not actively used in CI/CD.
 version: 1
-# Backend is deployed via GitHub Actions (see .github/workflows/deploy.yml)
-# Amplify Hosting only builds the frontend
-frontend:
-  phases:
-    preBuild:
-      commands:
-        - cd app && npm ci
-    build:
-      commands:
-        - cd app && npm run build
-  artifacts:
-    baseDirectory: app/dist
-    files:
-      - '**/*'
-  cache:
-    paths:
-      - app/node_modules/**/*

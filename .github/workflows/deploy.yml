@@ -40,6 +40,48 @@ jobs:
           export CI=1
           npx ampx pipeline-deploy --branch main --app-id "$AMPLIFY_APP_ID"
 
+      - name: Build frontend
+        run: |
+          cd app
+          npm ci
+          npm run build
+          echo "✅ Frontend built successfully"
+          
+      - name: Deploy frontend to Amplify Hosting
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ vars.AWS_REGION || 'eu-central-1' }}
+          AMPLIFY_APP_ID: ${{ secrets.AMPLIFY_APP_ID }}
+        run: |
+          # Create a zip of the built frontend
+          cd app/dist
+          zip -r ../frontend.zip .
+          cd ../..
+          
+          # Create deployment and get upload URL
+          DEPLOY_INFO=$(aws amplify create-deployment \
+            --app-id "$AMPLIFY_APP_ID" \
+            --branch-name main \
+            --output json)
+          
+          JOB_ID=$(echo $DEPLOY_INFO | jq -r '.jobId')
+          ZIP_UPLOAD_URL=$(echo $DEPLOY_INFO | jq -r '.zipUploadUrl')
+          
+          # Upload the zip file
+          curl -X PUT \
+            -H "Content-Type: application/zip" \
+            --data-binary @app/frontend.zip \
+            "$ZIP_UPLOAD_URL"
+          
+          # Start the deployment
+          aws amplify start-deployment \
+            --app-id "$AMPLIFY_APP_ID" \
+            --branch-name main \
+            --job-id "$JOB_ID"
+          
+          echo "✅ Frontend deployed to Amplify Hosting (Job ID: $JOB_ID)"
+
       - name: Upload amplify_outputs.json
         uses: actions/upload-artifact@v4
         with:

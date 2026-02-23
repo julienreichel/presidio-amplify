@@ -54,14 +54,19 @@ After deployment the CDK output will print the `PresidioApiUrl`.
 The `npx ampx sandbox` command deploys to a temporary CloudFormation stack in your AWS account. This is perfect for development and testing.
 
 ### Production Deployment (GitHub Actions)
-For production deployment, this project uses **GitHub Actions** instead of Amplify CI/CD because the Python Lambda layer requires Docker for bundling, which is not available in the default Amplify build environment.
+For production deployment, this project uses **GitHub Actions** to build and deploy everything:
 
-**Architecture:**
-- ✅ GitHub Actions deploys the backend (with Docker support for Python layer)
-- ✅ Amplify Hosting deploys the frontend only
-- ✅ Secure OIDC authentication (no long-lived credentials)
+**Why GitHub Actions?**
+- ✅ Docker support for Python Lambda layer bundling
+- ✅ Single workflow builds backend and frontend
+- ✅ Deploys to your existing Amplify app (HTTPS, custom domains, CDN)
+- ✅ Simple setup, no extra infrastructure
 
-**Setup Instructions:** See [.github/DEPLOYMENT.md](.github/DEPLOYMENT.md) for complete setup guide.
+**What gets deployed:**
+- **Backend**: Lambda functions + API Gateway (via `ampx pipeline-deploy`)
+- **Frontend**: Pre-built React SPA to Amplify Hosting
+
+**Setup Instructions:** See [.github/DEPLOYMENT.md](.github/DEPLOYMENT.md) for complete setup guide (takes ~5 minutes).
 
 ## Testing the API
 
