@@ -50,7 +50,7 @@ const ENTITY_OPTIONS = [
 ];
 
 interface AnalyzeEntity {
-  entity_type: string;
+  entityType: string;
   start: number;
   end: number;
   score: number;
@@ -114,7 +114,7 @@ export default function App() {
       if (!resp.ok) {
         setAnalyzeResult({ status: 'error', duration, error: JSON.stringify(data), raw: data });
       } else {
-        setAnalyzeResult({ status: 'success', duration, data: Array.isArray(data) ? data : data.entities ?? [], raw: data });
+        setAnalyzeResult({ status: 'success', duration, data: data.result?.entities ?? [], raw: data });
       }
     } catch (err) {
       setAnalyzeResult({ status: 'error', duration: Date.now() - t0, error: String(err) });
@@ -128,20 +128,32 @@ export default function App() {
     setAnonymizeResult(null);
     const t0 = Date.now();
     try {
-      const anonymizerParams: Record<string, unknown> = { type: operator };
+      // Build operator params based on selected operator type
+      const operatorParams: Record<string, unknown> = {};
       if (operator === 'mask') {
-        anonymizerParams.maskingChar = maskingChar;
-        anonymizerParams.charsToMask = typeof charsToMask === 'number' ? charsToMask : parseInt(String(charsToMask), 10);
-        anonymizerParams.fromEnd = fromEnd;
+        operatorParams.masking_char = maskingChar;
+        operatorParams.chars_to_mask = typeof charsToMask === 'number' ? charsToMask : parseInt(String(charsToMask), 10);
+        operatorParams.from_end = fromEnd;
       } else if (operator === 'replace') {
-        anonymizerParams.newValue = newValue;
+        operatorParams.new_value = newValue;
+      }
+
+      // Build operators object - apply to all entity types in the list, or DEFAULT for all
+      const operators: Record<string, Record<string, unknown>> = {};
+      const targetEntities = entities.length > 0 ? entities : ['DEFAULT'];
+      
+      for (const entityType of targetEntities) {
+        operators[entityType] = {
+          type: operator,
+          ...(Object.keys(operatorParams).length > 0 ? { params: operatorParams } : {}),
+        };
       }
 
       const body: Record<string, unknown> = {
         text: inputText,
         language,
         scoreThreshold,
-        anonymizer: anonymizerParams,
+        operators,
       };
       if (entities.length > 0) body.entities = entities;
 
@@ -158,7 +170,7 @@ export default function App() {
         setAnonymizeResult({
           status: 'success',
           duration,
-          text: data.text ?? data.anonymized_text ?? '',
+          text: data.result?.anonymizedText ?? '',
           raw: data,
         });
       }
@@ -254,17 +266,17 @@ export default function App() {
                             <Table.Thead>
                               <Table.Tr>
                                 <Table.Th>Type</Table.Th>
-                                <Table.Th>Start</Table.Th>
-                                <Table.Th>End</Table.Th>
+                                <Table.Th>Detected Text</Table.Th>
+                                <Table.Th>Position</Table.Th>
                                 <Table.Th>Score</Table.Th>
                               </Table.Tr>
                             </Table.Thead>
                             <Table.Tbody>
                               {analyzeResult.data.map((e, i) => (
                                 <Table.Tr key={i}>
-                                  <Table.Td><Badge variant="light">{e.entity_type}</Badge></Table.Td>
-                                  <Table.Td>{e.start}</Table.Td>
-                                  <Table.Td>{e.end}</Table.Td>
+                                  <Table.Td><Badge variant="light">{e.entityType}</Badge></Table.Td>
+                                  <Table.Td><Text ff="monospace" size="sm">{inputText.substring(e.start, e.end)}</Text></Table.Td>
+                                  <Table.Td><Text size="xs" c="dimmed">{e.start}-{e.end}</Text></Table.Td>
                                   <Table.Td>{e.score?.toFixed(3)}</Table.Td>
                                 </Table.Tr>
                               ))}
